@@ -63,3 +63,7 @@ def update_anime(anime_id, update_data_type, data):
         c.execute('''UPDATE ANIME SET cast_id = ? WHERE anime_id = ?''', (data, anime_id))
     else:
         print('Invalid data type')
+
+def clear_table(table_name):
+    query = f"DELETE FROM {table_name}"
+    c.execute(query)
