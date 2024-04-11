@@ -70,11 +70,33 @@ def fetch_anime_by_name(anime_name):
     
     anime_found = c.fetchone()
     if anime_found:
-        # Print the row if found
         return anime_found
     else:
-        # Print a message if no matching row was found
         print(f"No anime found with anime_id: {anime_name}")
+
+# insert data into user table
+def insert_user_data(user_tag, user_email, user_ph_no, user_password):
+    c.execute('''
+        INSERT INTO USER (user_tag, user_email, user_ph_no, user_password)
+        VALUES (?, ?, ?, ?)
+    ''', (user_tag, user_email, user_ph_no, user_password))
+
+# remove data from user table
+def remove_user_data(user_id):
+    c.execute('''DELETE FROM USER WHERE user_id = ?''', (user_id,))
+
+# update data in user table
+def update_user_data(user_id, update_data_type, data):
+    if update_data_type == 'user_tag':
+        c.execute('''UPDATE USER SET user_tag = ? WHERE user_id = ?''', (data, user_id))
+    elif update_data_type == 'user_email':
+        c.execute('''UPDATE USER SET user_email = ? WHERE user_id = ?''', (data, user_id))
+    elif update_data_type == 'user_ph_no':
+        c.execute('''UPDATE USER SET user_ph_no = ? WHERE user_id = ?''', (data, user_id))
+    elif update_data_type == 'user_password':
+        c.execute('''UPDATE USER SET user_password = ? WHERE user_id = ?''', (data, user_id))
+    else:
+        print('Invalid data type')
 
 def clear_table(table_name):
     query = f"DELETE FROM {table_name}"
