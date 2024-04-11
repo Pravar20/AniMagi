@@ -64,6 +64,18 @@ def update_anime(anime_id, update_data_type, data):
     else:
         print('Invalid data type')
 
+def fetch_anime_by_name(anime_name):
+
+    c.execute('SELECT * FROM ANIME WHERE anime_name = ?', (anime_name,))
+    
+    anime_found = c.fetchone()
+    if anime_found:
+        # Print the row if found
+        return anime_found
+    else:
+        # Print a message if no matching row was found
+        print(f"No anime found with anime_id: {anime_name}")
+
 def clear_table(table_name):
     query = f"DELETE FROM {table_name}"
     c.execute(query)
