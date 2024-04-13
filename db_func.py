@@ -99,5 +99,6 @@ def update_user_data(user_id, update_data_type, data):
         print('Invalid data type')
 
 def clear_table(table_name):
+    table = table_name.upper()
     query = f"DELETE FROM {table_name}"
     c.execute(query)
