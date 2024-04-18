@@ -112,7 +112,7 @@ def clear_table(table_name):
 """
 
 
-class DB_handler(sqlite3_connector.Animagi_DB):
+class DB_Handler(sqlite3_connector.Animagi_DB):
     def __init__(self, DB_name=...):
         super().__init__(DB_name)
 
