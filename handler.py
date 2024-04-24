@@ -1,116 +1,6 @@
 import sqlite3_connector
 import datetime
 
-"""
-# setting up Database
-def create_table():
-    
-    # anime table
-    c.execute('''CREATE TABLE IF NOT EXISTS ANIME(
-              anime_id INTEGER PRIMARY KEY,
-              anime_name TEXT NOT NULL,
-              anime_rating INTEGER,
-              anime_aired DATE,
-              studio_id INTEGER,
-              cast_id INTEGER
-    )''')
-    # user account table
-    c.execute('''CREATE TABLE IF NOT EXISTS USER(
-              user_id INTEGER PRIMARY KEY,
-              user_tag TEXT NOT NULL,
-              user_email TEXT NOT NULL,
-              user_ph_no TEXT,
-              user_password TEXT NOT NULL
-    )''')
-    # rating table
-    c.execute('''CREATE TABLE IF NOT EXISTS RATING(
-              rating_id INTEGER PRIMARY KEY,
-              anime_id INTEGER,
-              user_id INTEGER,
-              rating INTEGER
-    )''')
-    # production studio table
-    c.execute('''CREATE TABLE IF NOT EXISTS STUDIO(
-              studio_id INTEGER PRIMARY KEY,
-              studio_name TEXT NOT NULL,
-              anime_id INTEGER,
-              cast_id INTEGER,
-              cast_storage TEXT
-    )''')
-
-# insert data into anime table
-def insert_anime(anime_name, anime_rating, anime_aired, studio_id, cast_id):
-    c.execute('''
-        INSERT INTO ANIME (anime_name, anime_rating, anime_aired, studio_id, cast_id)
-        VALUES (?, ?, ?, ?, ?)
-    ''', (anime_name, anime_rating, anime_aired, studio_id, cast_id))
-
-# remove data from anime table
-def remove_anime(anime_id):
-    c.execute('''DELETE FROM ANIME WHERE anime_id = ?''', (anime_id,))
-
-# update data in anime table
-def update_anime(anime_id, update_data_type, data):
-    if update_data_type == 'anime_name':
-        c.execute('''UPDATE ANIME SET anime_name = ? WHERE anime_id = ?''', (data, anime_id))
-    elif update_data_type == 'anime_rating':
-        c.execute('''UPDATE ANIME SET anime_rating = ? WHERE anime_id = ?''', (data, anime_id))
-    elif update_data_type == 'anime_aired':
-        c.execute('''UPDATE ANIME SET anime_aired = ? WHERE anime_id = ?''', (data, anime_id))
-    elif update_data_type == 'studio_id':
-        c.execute('''UPDATE ANIME SET studio_id = ? WHERE anime_id = ?''', (data, anime_id))
-    elif update_data_type == 'cast_id':
-        c.execute('''UPDATE ANIME SET cast_id = ? WHERE anime_id = ?''', (data, anime_id)) else:
-        print('Invalid data type')
-
-def fetch_anime_by_name(anime_name):
-
-    c.execute('SELECT * FROM ANIME WHERE anime_name = ?', (anime_name,))
-    
-    anime_found = c.fetchone()
-    if anime_found:
-        return anime_found else:
-        print(f"No anime found with anime_id: {anime_name}")
-
-# insert data into user table
-def insert_user_data(user_tag, user_email, user_ph_no, user_password):
-    c.execute('''
-        INSERT INTO USER (user_tag, user_email, user_ph_no, user_password)
-        VALUES (?, ?, ?, ?)
-    ''', (user_tag, user_email, user_ph_no, user_password))
-
-# remove data from user table
-def remove_user_data(user_id):
-    c.execute('''DELETE FROM USER WHERE user_id = ?''', (user_id,))
-
-# update data in user table
-def update_user_data(user_id, update_data_type, data):
-    if update_data_type == 'user_tag':
-        c.execute('''UPDATE USER SET user_tag = ? WHERE user_id = ?''', (data, user_id))
-    elif update_data_type == 'user_email':
-        c.execute('''UPDATE USER SET user_email = ? WHERE user_id = ?''', (data, user_id))
-    elif update_data_type == 'user_ph_no':
-        c.execute('''UPDATE USER SET user_ph_no = ? WHERE user_id = ?''', (data, user_id))
-    elif update_data_type == 'user_password':
-        c.execute('''UPDATE USER SET user_password = ? WHERE user_id = ?''', (data, user_id)) else:
-        print('Invalid data type')
-
-def clear_table(table_name):
-    table = table_name.upper()
-    query = f"DELETE FROM {table_name}"
-    c.execute(query)
-
-
-    c.execute('''CREATE TABLE IF NOT EXISTS ANIME(
-              anime_id INTEGER PRIMARY KEY,
-              anime_name TEXT NOT NULL,
-              anime_rating INTEGER,
-              anime_aired DATE,
-              studio_id INTEGER,
-              cast_id INTEGER
-    )''')
-"""
-
 
 class DB_Handler(sqlite3_connector.Animagi_DB):
     def __init__(self, DB_name=...):
@@ -120,15 +10,14 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         # _____________Anime part of DB_____________
         anime_table = [
             ['create', 'table', '!exists', 'Anime'],
-            ['id', int, 'unsigned', '!null', 'pk', '++'],
+            ['id', int, 'unsigned', '!null', 'pk', '++'],   # Anime_id
             ['en_name', (str, 150)],
             ['jp_name', (str, 150)],
-
             ['icon', (str, 30)],    # The path for icon of the anime stored in \icons\Anime
-                                    # 'icons/Anime/1.jpg' stores this.
-            ['rating', int],
+            # 'icons/Anime/1.jpg' stores this.
+            ['rating', int],        # Stores sum of rating, updated when a rating is posted.
+            # For display divide this number by count of rating done.
             ['aired', datetime],
-
             ['Studio_id', int, 'unsigned'],
             ['Cast_id', int, 'unsigned'],
             ['Genre_id', int, 'unsigned'],
@@ -167,8 +56,9 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
             ['create', 'table', '!exists', 'Ratings'],
             ['User_id', int, 'unsigned', '!null'],
             ['Anime_id', int, 'unsigned', '!null'],
-            ['rating', int, 'unsigned', '!null'],   # Set by python to be 0-10.
+            ['rating', int, 'unsigned', '!null'],   # Set check to be 0-10.
 
+            ['ck', ['Ratings_rating', 'btwn', '0', 'and', '10']],
             ['pk', ['User_id', 'Anime_id']],
             ['fk', ['Ratings_User_id'], 'ref', 'User', ['User_id']],
             ['fk', ['Ratings_Anime_id'], 'ref', 'Anime', ['Anime_id']]
@@ -220,7 +110,50 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         ]
 
         # _____________Comment part of DB_____________
-        # TODO:
+        thread_table = [
+            ['create', 'table', '!exists', 'Thread'],
+            ['id', int, 'unsigned', '!null', 'pk', '++'],   # Referenced by Comment
+            ['Anime_id', int, 'unsigned', '!null'],
+
+            ['fk', ['Thread_Anime_id'], 'ref', 'Anime', ['Anime_id']],
+        ]
+
+        comment_table = [
+            ['create', 'table', '!exists', 'Comment'],
+            ['Thread_id', int, 'unsigned', '!null'],
+            ['OP_id', int, 'unsigned', '!null'],    # Basically a property of Thread_id, storing the comment data.
+            ['reply_id', int, 'unsigned', '!null'],
+
+            ['pk', ['Comment_Thread_id', 'Comment_reply_id']],
+            ['fk', ['Comment_OP_id'], 'ref', 'Comment_DB', ['Comment_DB_id']],
+            ['fk', ['Comment_reply_id'], 'ref', 'Comment_DB', ['Comment_DB_id']],
+        ]
+
+        comment_db_table = [
+            ['create', 'table', '!exists', 'Comment_DB'],
+            ['id', int, 'unsigned', '!null', 'pk', '++'],
+            ['text', str, '!null'],
+            ['User_id', int, 'unsigned', '!null'],
+            ['timestamp', datetime, '!null'],
+
+            ['fk', ['Comment_DB_User_id'], 'ref', 'User', ['User_id']]
+        ]
+
+        # __________________________________________________________________________________________
+        # With the commands above run the execs.
+        self.exec_cmd(self.get_create_tbl_cmd(anime_table))
+        self.exec_cmd(self.get_create_tbl_cmd(genre_db_table))
+        self.exec_cmd(self.get_create_tbl_cmd(genre_table))
+        self.exec_cmd(self.get_create_tbl_cmd(user_table))
+        self.exec_cmd(self.get_create_tbl_cmd(ratings_table))
+        self.exec_cmd(self.get_create_tbl_cmd(production_table))
+        self.exec_cmd(self.get_create_tbl_cmd(studio_table))
+        self.exec_cmd(self.get_create_tbl_cmd(studio_db_table))
+        self.exec_cmd(self.get_create_tbl_cmd(cast_table))
+        self.exec_cmd(self.get_create_tbl_cmd(va_db_table))
+        self.exec_cmd(self.get_create_tbl_cmd(thread_table))
+        self.exec_cmd(self.get_create_tbl_cmd(comment_table))
+        self.exec_cmd(self.get_create_tbl_cmd(comment_db_table))
 
     def __del__(self):
         super().__del__()

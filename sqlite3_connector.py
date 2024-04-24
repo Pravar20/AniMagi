@@ -75,7 +75,9 @@ class Animagi_DB:
             'autoinc': 'AUTOINCREMENT',
             '++': 'AUTOINCREMENT',
             'ck': 'CHECK',
-            'check': 'CHECK'
+            'check': 'CHECK',
+            'between': 'BETWEEN',
+            'btwn': 'BETWEEN',
         }
         # End of init.
 
