@@ -3,14 +3,15 @@ import datetime
 
 
 class DB_Handler(sqlite3_connector.Animagi_DB):
-    def __init__(self, DB_name=...):
+    def __init__(self, DB_name=sqlite3_connector.DEFAULT_DB):
         super().__init__(DB_name)
+        self.__FIRST_CREATE_TABLES()
 
     def __FIRST_CREATE_TABLES(self):
         # _____________Anime part of DB_____________
         anime_table = [
             ['create', 'table', '!exists', 'Anime'],
-            ['id', int, 'unsigned', '!null', 'pk', '++'],   # Anime_id
+            ['id', int, '!null', 'pk', '++'],   # Anime_id
             ['en_name', (str, 150)],
             ['jp_name', (str, 150)],
             ['icon', (str, 30)],    # The path for icon of the anime stored in \icons\Anime
@@ -30,7 +31,7 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         # Store genre names with respective ids.
         genre_db_table = [
             ['create', 'table', '!exists', 'Genre_DB'],
-            ['id', int, 'unsigned', '!null', 'pk', '++'],   # Referenced by Genre
+            ['id', int, '!null', 'pk', '++'],   # Referenced by Genre
             ['name', (str, 20), '!null', 'unique']
         ]
         # Table for allowing multi-value attribute of genre in anime table.
@@ -45,7 +46,7 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         # _____________User part of DB_____________
         user_table = [
             ['create', 'table', '!exists', 'User'],
-            ['id', int, 'unsigned', '!null', 'pk', '++'],
+            ['id', int, '!null', 'pk', '++'],
             ['tag', (str, 20), '!null', 'unique'],
             ['icon', (str, 30)],    # The path for icon of the anime stored in \icons\User
             ['email', (str, 320), '!null', 'unique'],   # Needs to be validated by python
@@ -59,7 +60,7 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
             ['rating', int, 'unsigned', '!null'],   # Set check to be 0-10.
 
             ['ck', ['Ratings_rating', 'btwn', '0', 'and', '10']],
-            ['pk', ['User_id', 'Anime_id']],
+            ['pk', ['Ratings_User_id', 'Ratings_Anime_id']],
             ['fk', ['Ratings_User_id'], 'ref', 'User', ['User_id']],
             ['fk', ['Ratings_Anime_id'], 'ref', 'Anime', ['Anime_id']]
         ]
@@ -88,7 +89,7 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
 
         studio_db_table = [
             ['create', 'table', '!exists', 'Studio_DB'],
-            ['id', int, 'unsigned', '!null', 'pk', '++'],  # Referenced by Studio
+            ['id', int, '!null', 'pk', '++'],  # Referenced by Studio
             ['name', (str, 70), '!null']
         ]
 
@@ -104,7 +105,7 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
 
         va_db_table = [
             ['create', 'table', '!exists', 'VA_DB'],
-            ['id', int, 'unsigned', '!null', 'pk', '++'],   # Referenced by Cast
+            ['id', int, '!null', 'pk', '++'],   # Referenced by Cast
             ['name', (str, 70), '!null'],
             ['icon', (str, 30)]     # The path for icon of the anime stored in \icons\VA
         ]
@@ -112,7 +113,7 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         # _____________Comment part of DB_____________
         thread_table = [
             ['create', 'table', '!exists', 'Thread'],
-            ['id', int, 'unsigned', '!null', 'pk', '++'],   # Referenced by Comment
+            ['id', int, '!null', 'pk', '++'],   # Referenced by Comment
             ['Anime_id', int, 'unsigned', '!null'],
 
             ['fk', ['Thread_Anime_id'], 'ref', 'Anime', ['Anime_id']],
@@ -131,10 +132,10 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
 
         comment_db_table = [
             ['create', 'table', '!exists', 'Comment_DB'],
-            ['id', int, 'unsigned', '!null', 'pk', '++'],
-            ['text', str, '!null'],
+            ['id', int, '!null', 'pk', '++'],
+            ['text', 'txt', '!null'],
             ['User_id', int, 'unsigned', '!null'],
-            ['timestamp', datetime, '!null'],
+            ['post_time', datetime, '!null'],
 
             ['fk', ['Comment_DB_User_id'], 'ref', 'User', ['User_id']]
         ]

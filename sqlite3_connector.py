@@ -21,7 +21,8 @@ class Animagi_DB:
         self.DB_token_map = {
             int: 'INTEGER',
             float: 'REAL',
-            str:  'TEXT',
+            'txt':  'TEXT',
+            'text': 'TEXT',
             (str): (lambda n: f"VARCHAR({n})"),
             bytes: 'BLOB',
             datetime: 'DATETIME',
@@ -88,10 +89,14 @@ class Animagi_DB:
             cmd (_str_): The sanitized command.
             inputs (_str_):  A list of input values for parameter substitution.
         """
-        if inputs is None:
-            self.DB_cursor.execute(cmd)
-        else:
-            self.DB_cursor.execute(cmd, inputs)
+        try:
+            if inputs is None:
+                self.DB_cursor.execute(cmd)
+            else:
+                self.DB_cursor.execute(cmd, inputs)
+        except sqlite3.OperationalError as e:
+            print("Error caused by command: \n", cmd)
+            raise sqlite3.OperationalError(e)
 
     def token_mapping(self, tkn):
         """
@@ -136,13 +141,6 @@ class Animagi_DB:
         """
         self.DB_connection.commit()
 
-    def __del__(self):
-        """
-        Destructor that closes the connection with the database when the object is deleted.
-        """
-        self.commit()
-        self.DB_connection.close()
-
     def get_create_tbl_cmd(self, params: list):
         """
         Create SQL command for creating table in sqlite3 form.
@@ -180,7 +178,11 @@ class Animagi_DB:
                     if isinstance(tkn, list):
                         # If valid token map it else leave it.
                         map_tkn = [self.token_mapping(t) if self.valid_token(t) else t for t in tkn]
-                        prm_parsed.append('(' + ','.join(map_tkn) + ')')
+                        # For check command join with space.
+                        if self.token_mapping(prm[0]) == 'CHECK':
+                            prm_parsed.append('(' + ' '.join(map_tkn) + ')')
+                        else:   # Else join with ','
+                            prm_parsed.append('(' + ','.join(map_tkn) + ')')
                     elif self.valid_token(tkn):
                         prm_parsed.append(self.token_mapping(tkn))
                     else:
@@ -188,7 +190,7 @@ class Animagi_DB:
             else:
                 prm_parsed = [params[0][-1] + '_' + prm[0]] + \
                         [self.token_mapping(tkn) for tkn in prm[1:]]
-            
+
             # If it's last element then don't add a comma.
             if prm == params[-1]:
                 col_cmd = col_cmd + ' '.join(prm_parsed)
@@ -205,3 +207,10 @@ class Animagi_DB:
 
         # Return the param and inputs.
         return create_param
+
+    def __del__(self):
+        """
+        Destructor that closes the connection with the database when the object is deleted.
+        """
+        self.commit()
+        self.DB_connection.close()
