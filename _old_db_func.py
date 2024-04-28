@@ -113,6 +113,12 @@ def find_data_from_another_table(L_table, R_table, L_shared_columns, R_shared_co
     return f"SELECT * FROM {R_table} LEFT JOIN {L_table} ON {L_table}.{L_shared_columns} = {R_table}.{R_shared_column}
      WHERE {R_table}.{R_table_ID} = {specific_ID}"
 
+def show_table(cursor, query):
+    cursor.execute(query)
+    rows = cursor.fetchall()
+    for row in rows:
+        print(row)
+
 def clear_table(table_name):
     table = table_name.upper()
     return f"DELETE FROM {table_name}"
