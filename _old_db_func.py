@@ -97,10 +97,12 @@ def update_user_data(user_id, update_data_type, data):
         c.execute('''UPDATE USER SET user_password = ? WHERE user_id = ?''', (data, user_id))
     else:
         print('Invalid data type')
-        
-def find_by_filters(table_name, filters):
+
+# pass table's name with filters as list of tuples
+def find_with_filters(table_name, filters):
     query = " WHERE " + " AND ".join([f"{filter[0]} = ?" for filter in filters])    
     return f"SELECT * FROM {table_name} {query}"
+
 
 def clear_table(table_name):
     table = table_name.upper()
