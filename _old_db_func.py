@@ -103,6 +103,15 @@ def find_with_filters(table_name, filters):
     query = " WHERE " + " AND ".join([f"{filter[0]} = ?" for filter in filters])    
     return f"SELECT * FROM {table_name} {query}"
 
+# return all the columns that interact with both tables that has the specific ID
+# L_shared_column = the name of the column in the left table that is shared with the left table
+# Right table = the table that data will be return from
+# R_shared_column = the name of the column in the right table that is shared with the left table
+# R_table_ID = the name of column from Right table that has ID
+# specific_ID the specific ID of the item we want to find
+def find_data_from_another_table(L_table, R_table, L_shared_columns, R_shared_column, R_table_ID, specific_ID):
+    return f"SELECT * FROM {R_table} LEFT JOIN {L_table} ON {L_table}.{L_shared_columns} = {R_table}.{R_shared_column}
+     WHERE {R_table}.{R_table_ID} = {specific_ID}"
 
 def clear_table(table_name):
     table = table_name.upper()
