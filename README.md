@@ -1,3 +1,16 @@
+* run.py:
+
+    Sample implementation of how to use the DB_Handler class to insert
+    the anime into the database.
+
+* handler.py:
+
+
+    A handler class that will be the interface between DB and user.
+    Unfinished.
+    Able to insert an anime into the database.
+    (Refer to the implementations in run.py)
+
 * sqlite3_connector.py:
 
 
@@ -5,24 +18,6 @@
     Has custom commands to create tables, allowing abbreviations.
     Create cmd: Finished. (to be tested)
     Other commands implementation TDB.
-
-* handler.py:
-
-
-    A handler class that will be the interface between DB and user.
-    Unfinished.
-    FIRST_CREATE function has the create statements
-    to make the database for the first time. 
-    (Refer to the implementations for knowing the type
-    of data required for storing an anime, user, comment, rating)
-
-* \icons:
-
-
-    A directory to hold all the pictures/icons used in the database.
-        * \icons\Anime
-        * \icons\User
-        * \icons\VA
 
 * db_func.py:
 

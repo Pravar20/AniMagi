@@ -2,7 +2,7 @@
 File incomplete: need to implement create foreign key things.
 """
 
-import _sqlite3 as sqlite3
+import sqlite3
 import datetime
 
 DEFAULT_DB = 'animagi.db'
@@ -12,8 +12,7 @@ class Animagi_DB:
     def __init__(self, DB_name=DEFAULT_DB):
         """
         Constructor for database connection.
-        Args:
-            DB_name (_str_): String name for  the database file to be created/connected with. Default is "animagi.db".
+        :param DB_name: String name for  the database file to be created/connected with. Default is "animagi.db".
         """
         self.DB_name = DB_name
         self.DB_connection = sqlite3.connect(DB_name)
@@ -21,14 +20,15 @@ class Animagi_DB:
         self.DB_token_map = {
             int: 'INTEGER',
             float: 'REAL',
-            'txt':  'TEXT',
+            'txt': 'TEXT',
             'text': 'TEXT',
+            str: 'TEXT',
             (str): (lambda n: f"VARCHAR({n})"),
             bytes: 'BLOB',
-            datetime: 'DATETIME',
+            datetime: 'TIMESTAMP',
             'null': 'NULL',
             'not null': 'NOT NULL',
-            '!null':  'NOT NULL',
+            '!null': 'NOT NULL',
             'add': 'ADD',
             'and': 'AND',
             'as': 'AS',
@@ -54,7 +54,7 @@ class Animagi_DB:
             'in': 'IN',
             'inner join': 'INNER JOIN',
             'insert into': 'INSERT INTO',
-            'is null':  'IS NULL',
+            'is null': 'IS NULL',
             'is not null': 'IS NOT NULL',
             'is !null': 'IS NOT NULL',
             'join': 'JOIN',
@@ -85,17 +85,30 @@ class Animagi_DB:
     def exec_cmd(self, cmd, inputs=None):
         """
         Execute a SQL command in the database.
-        Args:
-            cmd (_str_): The sanitized command.
-            inputs (_str_):  A list of input values for parameter substitution.
+        :param cmd: The sanitized command.
+        :param inputs: A tuple of input values for parameter substitution.
+        :return: Output of the command.
         """
         try:
             if inputs is None:
-                self.DB_cursor.execute(cmd)
+                return self.DB_cursor.execute(cmd)
             else:
-                self.DB_cursor.execute(cmd, inputs)
+                return self.DB_cursor.execute(cmd, inputs)
         except sqlite3.OperationalError as e:
             print("Error caused by command: \n", cmd)
+            raise sqlite3.OperationalError(e)
+
+    def exec_many_cmd(self, cmd, inputs):
+        """
+        Execute multiple similar SQL command in the database.
+        :param cmd: The sanitized command.
+        :param inputs: A list of tuple input values for parameter substitution.
+        :return: Output of the command.
+        """
+        try:
+            return self.DB_cursor.executemany(cmd, inputs)
+        except sqlite3.OperationalError as e:
+            print("Error caused by command: \n", cmd, "\n Inputs: ", inputs)
             raise sqlite3.OperationalError(e)
 
     def token_mapping(self, tkn):
@@ -144,16 +157,14 @@ class Animagi_DB:
     def get_create_tbl_cmd(self, params: list):
         """
         Create SQL command for creating table in sqlite3 form.
-        Args:
-            params (list): list of params sample form:
-            [
-                ['create', 'table', '!exists', 'tbl_nm'],
-                ['col_nm1', int, 'nnull', 'pk'],
-                ['col_nm2', str, 'nnull'],
-                ['col_nm3', int]
-            ]
-
-        Returns:
+        :param params: list of params sample form:
+                        [
+                            ['create', 'table', '!exists', 'tbl_nm'],
+                            ['col_nm1', int, 'nnull', 'pk'],
+                            ['col_nm2', str, 'nnull'],
+                            ['col_nm3', int]
+                        ]
+        :return:
             str: Create cmd with ? in places to be replaced by values by execute command.
             list: List of the inputs for respective ? is create cmd.
         """
@@ -173,7 +184,8 @@ class Animagi_DB:
         for prm in params[1:]:
             prm_parsed = []
             # Parse the integrity key commands separately.
-            if self.valid_token(prm[0]) and self.token_mapping(prm[0]) in ['FOREIGN KEY', 'PRIMARY KEY', 'CHECK']:
+            if (self.valid_token(prm[0]) and
+                    self.token_mapping(prm[0]) in ['FOREIGN KEY', 'PRIMARY KEY', 'CHECK', 'UNIQUE']):
                 for tkn in prm:
                     if isinstance(tkn, list):
                         # If valid token map it else leave it.
@@ -181,7 +193,7 @@ class Animagi_DB:
                         # For check command join with space.
                         if self.token_mapping(prm[0]) == 'CHECK':
                             prm_parsed.append('(' + ' '.join(map_tkn) + ')')
-                        else:   # Else join with ','
+                        else:  # Else join with ','
                             prm_parsed.append('(' + ','.join(map_tkn) + ')')
                     elif self.valid_token(tkn):
                         prm_parsed.append(self.token_mapping(tkn))
@@ -189,13 +201,19 @@ class Animagi_DB:
                         prm_parsed.append(tkn)
             else:
                 prm_parsed = [params[0][-1] + '_' + prm[0]] + \
-                        [self.token_mapping(tkn) for tkn in prm[1:]]
+                             [self.token_mapping(tkn) if (
+                                         self.valid_token(tkn) or isinstance(tkn, tuple)) else tkn
+                              for tkn in prm[1:]]
 
             # If it's last element then don't add a comma.
             if prm == params[-1]:
                 col_cmd = col_cmd + ' '.join(prm_parsed)
             else:
-                col_cmd = col_cmd + ' '.join(prm_parsed) + ', '
+                try:
+                    col_cmd = col_cmd + ' '.join(prm_parsed) + ', '
+                except TypeError as e:
+                    print(f"Error in joining params: {prm_parsed}")
+                    raise e
 
         # Prime the column inputs.
         create_param = create_param + ' (\n?\n)'
@@ -213,4 +231,5 @@ class Animagi_DB:
         Destructor that closes the connection with the database when the object is deleted.
         """
         self.commit()
+        self.DB_cursor.close()
         self.DB_connection.close()
