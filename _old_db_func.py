@@ -115,5 +115,4 @@ def find_data_from_another_table(L_table, R_table, L_shared_columns, R_shared_co
 
 def clear_table(table_name):
     table = table_name.upper()
-    query = f"DELETE FROM {table_name}"
-    c.execute(query)
+    return f"DELETE FROM {table_name}"
