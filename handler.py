@@ -186,8 +186,13 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         self.__first_create_tables()
         # ____________________Anime prime____________________
         # Add type hint.
-        anime_dict: Anime
-        anime_dict = {
+        anime_aot: Anime
+        anime_naruto: Anime
+        anime_fma: Anime
+        anime_jjk: Anime
+        anime_aotfinal: Anime
+
+        anime_aot = {
             'en_name': 'Attack on Titan', 'jp_name': 'Shingeki no Kyojin',
             'aired': date(2013, 4, 7),
             'episodes': 25, 'anime_icon': 'https://cdn.myanimelist.net/images/anime/10/47347.jpg',
@@ -203,8 +208,72 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
                 ('Shimamura, Yuu', 'Leonhart, Annie'),
             ]
         }
-        self.insert_anime(anime_dict)
+        anime_naruto = {
+            'en_name': 'Naruto', 'jp_name': 'Naruto',
+            'aired': date(2002, 10, 3),
+            'episodes': 220, 'anime_icon': 'https://cdn.myanimelist.net/images/anime/13/17405.jpg',
+            'genres': ['Action', 'Adventure', 'Comedy', 'Super Power'],
+            'studios': ['Studio Pierrot'],
+            'roles': [
+                ('Takeuchi, Junko', 'Uzumaki, Naruto'),
+                ('Inoue, Kazuhiko', 'Hatake, Kakashi'),
+                ('Nakamura, Chie', 'Haruno, Sakura'),
+                ('Sugiyama, Noriaki', 'Uchiha, Sasuke'),
+            ]
+        }
+        anime_fma = {
+            'en_name': 'Fullmetal Alchemist: Brotherhood',
+            'jp_name': 'Hagane no Renkinjutsushi: Fullmetal Alchemist',
+            'aired': date(2009, 4, 5),
+            'episodes': 64, 'anime_icon': 'https://cdn.myanimelist.net/images/anime/1223/96541.jpg',
+            'genres': ['Action', 'Military', 'Adventure', 'Drama', 'Magic', 'Fantasy'],
+            'studios': ['Bones'],
+            'roles': [
+                ('Paku, Romi', 'Elric, Edward'),
+                ('Kugimiya, Rie', 'Elric, Alphonse'),
+                ('Miki, Shinichiro', 'Mustang, Roy'),
+                ('Han, Keiko', 'Hawkeye, Riza'),
+            ]
+        }
+        anime_jjk = {
+            'en_name': 'Jujutsu Kaisen', 'jp_name': 'Jujutsu Kaisen',
+            'aired': date(2020, 10, 3),
+            'episodes': 24, 'anime_icon': 'https://cdn.myanimelist.net/images/anime/6/109302.jpg',
+            'genres': ['Action', 'Horror', 'Supernatural', 'Mystery', 'School', 'Shounen'],
+            'studios': ['MAPPA'],
+            'roles': [
+                ('Enoki, Junya', 'Itadori, Yuuji'),
+                ('Uchida, Yuuma', 'Fushiguro, Megumi'),
+                ('Seto, Asami', 'Kugisaki, Nobara'),
+                ('Nakamura, Yuichi', 'Gojou, Satoru'),
+                ('Hanae, Natsuki', 'Zenin, Maki'),
+                ('Kaji, Yuuki', 'Inumaki, Toge'),
+                ('Okitsu, Kazuyuki', 'Nanami, Kento'),
+                ('Ishida, Akira', 'Getou, Suguru'),
+            ]
+        }
+        anime_aotfinal = {
+            'en_name': 'Attack on Titan: Final Season', 'jp_name': 'Shingeki no Kyojin: The Final Season',
+            'aired': date(2020, 12, 7),
+            'episodes': 16, 'anime_icon': 'https://cdn.myanimelist.net/images/anime/1000/110531.jpg',
+            'genres': ['Action', 'Drama', 'Suspense'], 'studios': ['MAPPA'],
+            'roles': [
+                ('Kaji, Yuuki', 'Yeager, Eren'),
+                ('Ishikawa, Yui', 'Ackerman, Mikasa'),
+                ('Inoue, Marina', 'Arlert, Armin'),
+                ('Kamiya, Hiroshi', 'Levi'),
+                ('Park, Romi', 'Zoë, Hange'),
+                ('Sakura, Ayane', 'Braun, Gabi'),
+                ('Kobayashi, Yuu', 'Blouse, Sasha'),
+                ('Hosoya, Yoshimasa', 'Braun, Reiner'),
+            ]
+        }
 
+        self.insert_anime(anime_aot)
+        self.insert_anime(anime_naruto)
+        self.insert_anime(anime_fma)
+        self.insert_anime(anime_jjk)
+        self.insert_anime(anime_aotfinal)
         # ____________________VA DB prime____________________
         va_db_inp = [
             ("Kaji, Yuuki", 'https://cdn.myanimelist.net/r/42x62/images/voiceactors/2/66416.jpg?s=91e56f66a0be72a89dff77e0d8ec55ce'),
@@ -226,6 +295,10 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         # ____________________Rate prime____________________
         self.give_rating('Pravar20', 'Attack on Titan', 10)
         self.give_rating('KikiThe1st', 'Shingeki no Kyojin', 9)
+        self.give_rating('Pravar20', 'Naruto', 5)
+        self.give_rating('KikiThe1st', 'Naruto', 10)
+        self.give_rating('Pravar20', 'Attack on Titan: Final Season', 8)
+        self.give_rating('KikiThe1st', 'Shingeki no Kyojin: The Final Season', 6)
 
         # ____________________Comment prime____________________
         pk_thread = self.make_thread('Attack on Titan', 'Pravar20', 'This is one of my favorite anime!')
@@ -237,8 +310,6 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
 
         self.reply_to_thread(pk_thread, 'KikiThe1st', 'I agree its in my top 10 list.')
         self.reply_to_thread(pk_thread, 'Pravar20', '@KikiThe1st Yeah and the rating also shows it')
-
-        pass
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def insert_anime(self, anime_dict: Anime):
