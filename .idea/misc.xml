@@ -4,4 +4,7 @@
     <option name="sdkName" value="project-animagi" />
   </component>
   <component name="ProjectRootManager" version="2" project-jdk-name="project-animagi" project-jdk-type="Python SDK" />
+  <component name="PyPackaging">
+    <option name="earlyReleasesAsUpgrades" value="true" />
+  </component>
 </project>

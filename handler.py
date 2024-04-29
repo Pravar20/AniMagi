@@ -1,11 +1,13 @@
-
 import sqlite3_connector
 import sqlite3  # For raising errors
-import datetime
-from datetime import date
+from datetime import date, datetime
 import pandas as pd
 from typing import TypedDict
 from IPython.display import display
+from statistics import mean
+import re
+import argon2
+from argon2 import PasswordHasher
 
 
 def list_to_string(lst):
@@ -38,8 +40,7 @@ class Anime(TypedDict):
 class DB_Handler(sqlite3_connector.Animagi_DB):
     def __init__(self, DB_name=sqlite3_connector.DEFAULT_DB):
         super().__init__(DB_name)
-        self.__first_create_tables()
-        self.__sample_data_insert()
+        self.m_pswd_hasher = PasswordHasher()
 
     def __first_create_tables(self):
         tables = []
@@ -51,9 +52,6 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
             ['en_name', (str, 150), 'default', 'null', 'unique'],
             ['jp_name', (str, 150), 'default', 'null', 'unique'],
             ['icon', (str, 200), 'default', 'null'],    # The link to photo
-            ['rating', int, 'unsigned', 'default', '0'],
-            # Stores sum of rating, updated when a rating is posted.
-            # For display divide this number by count of rating done.
             ['aired', datetime],
             ['episodes', int, 'unsigned', 'default', '0'],
 
@@ -76,29 +74,6 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
             ['create', 'table', '!exists', 'Genre_DB'],
             ['id', int, '!null', 'pk', '++'],  # Referenced by Genre
             ['name', (str, 20), '!null', 'unique']
-        ])
-
-        # _____________User part of DB_____________
-        # User Table.
-        tables.append([
-            ['create', 'table', '!exists', 'User'],
-            ['id', int, '!null', 'pk', '++'],
-            ['tag', (str, 20), '!null', 'unique'],
-            ['icon', (str, 200), 'default', 'null'],  # The icon link string.
-            ['email', (str, 320), '!null', 'unique'],  # Needs to be validated by python
-            ['pwdhash', (str, 97), '!null']  # Makes use of Argon2
-        ])
-        # Ratings Table.
-        tables.append([
-            ['create', 'table', '!exists', 'Ratings'],
-            ['User_id', int, '!null'],
-            ['Anime_id', int, '!null'],
-            ['rating', int, '!null'],  # Set check to be 0-10.
-
-            ['ck', ['Ratings_rating', 'btwn', '0', 'and', '10']],
-            ['pk', ['Ratings_User_id', 'Ratings_Anime_id']],
-            ['fk', ['Ratings_User_id'], 'ref', 'User', ['User_id']],
-            ['fk', ['Ratings_Anime_id'], 'ref', 'Anime', ['Anime_id']]
         ])
 
         # _____________Production part of DB_____________
@@ -150,21 +125,22 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         # Thread Table.
         tables.append([
             ['create', 'table', '!exists', 'Thread'],
-            ['id', int, '!null', 'pk', '++'],  # Referenced by Comment
+            ['id', int, '!null', 'pk', '++'],  # Referenced by Reply
             ['Anime_id', int, '!null'],
+            ['Comment_DB_id', int, '!null'],       # Referencing Comment_DB_id
 
             ['fk', ['Thread_Anime_id'], 'ref', 'Anime', ['Anime_id']],
+            ['fk', ['Thread_Comment_DB_id'], 'ref', 'Comment_DB', ['Comment_DB_id']],
         ])
-        # Comment Table.
+        # Reply Table.
         tables.append([
-            ['create', 'table', '!exists', 'Comment'],
+            ['create', 'table', '!exists', 'Reply'],
             ['Thread_id', int, '!null'],
-            ['OP_id', int, '!null'],  # Basically a property of Thread_id, storing the comment data.
-            ['reply_id', int, '!null'],
+            ['Comment_DB_id', int, '!null'],     # Referencing Comment_DB_id
 
-            ['pk', ['Comment_Thread_id', 'Comment_reply_id']],
-            ['fk', ['Comment_OP_id'], 'ref', 'Comment_DB', ['Comment_DB_id']],
-            ['fk', ['Comment_reply_id'], 'ref', 'Comment_DB', ['Comment_DB_id']],
+            ['pk', ['Reply_Thread_id', 'Reply_Comment_DB_id']],
+            ['fk', ['Reply_Thread_id'], 'ref', 'Thread', ['Thread_id']],
+            ['fk', ['Reply_Comment_DB_id'], 'ref', 'Comment_DB', ['Comment_DB_id']],
         ])
         # Comment DB Table.
         tables.append([
@@ -177,13 +153,58 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
             ['fk', ['Comment_DB_User_id'], 'ref', 'User', ['User_id']]
         ])
 
+        # _____________User part of DB_____________
+        # User Table.
+        tables.append([
+            ['create', 'table', '!exists', 'User'],
+            ['id', int, '!null', 'pk', '++'],
+            ['tag', (str, 20), '!null', 'unique'],
+            ['icon', (str, 200), 'default', 'null'],  # The icon link string.
+            ['email', (str, 320), '!null', 'unique'],  # Needs to be validated by python
+            ['pwdhash', (str, 97), '!null']  # Makes use of Argon2
+        ])
+        # Ratings Table.
+        tables.append([
+            ['create', 'table', '!exists', 'Ratings'],
+            ['User_id', int, '!null'],
+            ['Anime_id', int, '!null'],
+            ['rating', int, '!null'],  # Set check to be 0-10.
+
+            ['ck', ['Ratings_rating', 'btwn', '0', 'and', '10']],
+            ['pk', ['Ratings_User_id', 'Ratings_Anime_id']],
+            ['fk', ['Ratings_User_id'], 'ref', 'User', ['User_id']],
+            ['fk', ['Ratings_Anime_id'], 'ref', 'Anime', ['Anime_id']]
+        ])
+
         # __________________________________________________________________________________________
         # With the commands above run the execs.
         for tbl in tables:
             self.exec_cmd(self.get_create_tbl_cmd(tbl))
             self.commit()
 
-    def __sample_data_insert(self):
+    def sample_data_insert(self):
+        self.__first_create_tables()
+        # ____________________Anime prime____________________
+        # Add type hint.
+        anime_dict: Anime
+        anime_dict = {
+            'en_name': 'Attack on Titan', 'jp_name': 'Shingeki no Kyojin',
+            'aired': date(2013, 4, 7),
+            'episodes': 25, 'anime_icon': 'https://cdn.myanimelist.net/images/anime/10/47347.jpg',
+            'genres': ['Action', 'Award Winning', 'Drama', 'Suspense'], 'studios': ['Wit Studio'],
+            'roles': [
+                ('Kaji, Yuuki', 'Yeager, Eren'),
+                ('Ishikawa, Yui', 'Ackerman, Mikasa'),
+                ('Inoue, Marina', 'Arlert, Armin'),
+                ('Kamiya, Hiroshi', 'Levi'),
+                ('Ono, Daisuke', 'Smith, Erwin'),
+                ('Park, Romi', 'Zoë, Hange'),
+                ('Kobayashi, Yuu', 'Blouse, Sasha'),
+                ('Shimamura, Yuu', 'Leonhart, Annie'),
+            ]
+        }
+        self.insert_anime(anime_dict)
+
         # ____________________VA DB prime____________________
         va_db_inp = [
             ("Kaji, Yuuki", 'https://cdn.myanimelist.net/r/42x62/images/voiceactors/2/66416.jpg?s=91e56f66a0be72a89dff77e0d8ec55ce'),
@@ -196,6 +217,30 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         ]
         self.insert_va_db(va_db_inp)
 
+        # ____________________User prime____________________
+        # With icon.
+        self.create_user('Pravar20', 'pkochar1@umbc.edu', 'supersecret0000', 'https://cdn-icons-png.flaticon.com/512/270/270811.png')
+        # No icon.
+        self.create_user('KikiThe1st', 'nb29691@umbc.edu', 'supersecret0001')
+
+        # ____________________Rate prime____________________
+        self.give_rating('Pravar20', 'Attack on Titan', 10)
+        self.give_rating('KikiThe1st', 'Shingeki no Kyojin', 9)
+
+        # ____________________Comment prime____________________
+        pk_thread = self.make_thread('Attack on Titan', 'Pravar20', 'This is one of my favorite anime!')
+
+        # Can pass in index to not have to search for anime.
+        aot_key = self.__get_anime_idx('Attack on Titan')
+        fz_thread = self.make_thread('Attack on Titan', 'KikiThe1st',
+                                     'Love that this has 26 episodes!!!', ani_idx_override=aot_key)
+
+        self.reply_to_thread(pk_thread, 'KikiThe1st', 'I agree its in my top 10 list.')
+        self.reply_to_thread(pk_thread, 'Pravar20', '@KikiThe1st Yeah and the rating also shows it')
+
+        pass
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def insert_anime(self, anime_dict: Anime):
         """
         Insert an Anime into the database.
@@ -222,7 +267,6 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         self.insert_studios(valid_name, anime_dict['studios'], ani_idx_override=ani_idx)
         # Add the cast as role-va pair.
         self.insert_casting(valid_name, anime_dict['roles'], ani_idx_override=ani_idx)
-
         # Commit to database.
         self.commit()
 
@@ -358,15 +402,32 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         if anime_idx is None:
             print(f'handler.insert_casting(): No anime with name {anime_name} found, insert interrupted.')
             return
+
         # Assign the roles to the VAs.
-        for cast in casting:
-            va_idx = self.__get_va_idx(cast[0])
+        cast_inp = [(anime_idx, self.__get_casting_idx(cast[0], cast[1])) for cast in casting]
+
+        # Insert into Cast table.
+        cast_insert_cmd = '''INSERT INTO Cast (Cast_Anime_id, Cast_Casting_id) VALUES (?, ?)'''
+        self.exec_many_cmd(cast_insert_cmd, cast_inp)
+
+    def __get_casting_idx(self, va_name, role_name, va_idx_override=None):
+        """
+        Gets the casting id from the Casting table, if it doesnt exist, inserts it then returns
+        the idx.
+        :param va_name: Name of VA who voiced to role.
+        :param role_name: Name of role voiced.
+        :param va_idx_override: Override from higher call to skip VA search.
+        """
+        va_idx = self.__get_va_idx(va_name) if va_idx_override is None else va_idx_override
+        # Insert the role.
+        try:
             role_insert_cmd = '''INSERT INTO Casting (Casting_VA_DB_id, Casting_role) VALUES (?, ?)'''
-            try:
-                self.exec_cmd(role_insert_cmd, (va_idx, cast[1]))
-            # If role assigned to VA is stored skip it.
-            except sqlite3.IntegrityError as e:
-                pass
+            self.exec_cmd(role_insert_cmd, (va_idx, role_name))
+        # If role assigned to VA is stored catch the error thrown.
+        except sqlite3.IntegrityError as e:
+            pass
+        query_casting_cmd = '''SELECT Casting_id FROM Casting WHERE Casting_VA_DB_id = ? AND Casting_role = ?'''
+        return self.exec_cmd(query_casting_cmd, (va_idx, role_name)).fetchone()[0]
 
     def __get_va_idx(self, va_name):
         """
@@ -397,14 +458,162 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
                 va_db_cmd = '''INSERT INTO VA_DB (VA_DB_name) VALUES (?)'''
                 self.exec_cmd(va_db_cmd, (va[0],))
 
+    # ~~~~~~~~~~~~~~~~~~Insert into Comment table functions~~~~~~~~~~~~~~~~~~
+    def make_thread(self, anime_name, user_name, OP_cmnt, user_idx_override=None,
+                    ani_idx_override=None):
+        """
+        Make a thread and return the thread id.
+        :param anime_name: Name of anime to make the thread for.
+        :param user_name: Name of user to make the thread for.
+        :param OP_cmnt: Command to make the thread for.
+        :param user_idx_override: Override from higher call to skip user search.
+        :param ani_idx_override: Override from higher call to skip anime search.
+        :return: Thread id (Shouldn't be None).
+        """
+        ani_idx = self.__get_anime_idx(anime_name) if ani_idx_override is None else ani_idx_override
+        usr_idx = self.__get_user_idx(user_name) if user_idx_override is None else user_idx_override
+
+        # Check both the anime and user exists.
+        if ani_idx is None:
+            print(f'handler.make_thread(): No anime with name {anime_name} found, can\'t comment on it.')
+            return
+        if usr_idx is None:
+            print(f'handler.make_thread(): Invalid user name {user_name}, comment interrupted.')
+            return
+        # Make the comment.
+        cmnt_idx = self.__create_comment(user_name, OP_cmnt, user_idx_override)
+
+        # Insert the thread.
+        thread_cmd = '''INSERT INTO Thread (Thread_Anime_id, Thread_Comment_DB_id) VALUES (?, ?)'''
+        self.exec_cmd(thread_cmd, (ani_idx, cmnt_idx))
+
+        # Return the thread index.
+        return self.get_thread_idx(anime_name, user_name, OP_cmnt, ani_idx_override=ani_idx, user_idx_override=usr_idx)
+
+    def get_thread_idx(self, anime_name, user_name, cmnt, ani_idx_override=None,
+                       user_idx_override=None):
+        ani_idx = self.__get_anime_idx(anime_name) if ani_idx_override is None else ani_idx_override
+        usr_idx = self.__get_user_idx(user_name) if user_idx_override is None else user_idx_override
+        cmnt_idx = self.__get_cmnt_idx(user_name, cmnt, usr_idx_override=usr_idx)
+        if None in [ani_idx, usr_idx, cmnt_idx]:
+            print(f'handler.search_thread(): Can\'t search for the requested thread.')
+            return None
+
+        search_cmd = '''SELECT Thread_id FROM Thread WHERE Thread_Comment_DB_id = ?'''
+        srch_idx = self.exec_cmd(search_cmd, (cmnt_idx,)).fetchone()
+        return srch_idx[0] if srch_idx is not None else None
+
+    def reply_to_thread(self, thread_id, replier_name, reply, replier_idx_override=None):
+        replier_idx = self.__get_user_idx(replier_name) if replier_idx_override is None else replier_idx_override
+        if replier_idx is None:
+            print("handler.reply_to_thread(): Need to make an account to reply to a thread.")
+            return
+        # Make the comment.
+        cmnt_idx = self.__create_comment(replier_name, reply, usr_idx_override=replier_idx)
+
+        # Add reply to thread.
+        reply_cmd = '''INSERT INTO Reply (Reply_Thread_id, Reply_Comment_DB_id) VALUES (?, ?)'''
+        try:
+            self.exec_cmd(reply_cmd, (thread_id, cmnt_idx))
+        except sqlite3.IntegrityError as e:
+            print("handler.reply_to_thread(): Can't reply to an invalid thread_id.\n", e)
+
+    def __get_cmnt_idx(self, user_name, cmnt, usr_idx_override=None):
+        usr_idx = self.__get_user_idx(user_name) if usr_idx_override is None else usr_idx_override
+        search_cmnt_cmd = '''SELECT Comment_DB_id FROM Comment_DB WHERE Comment_DB_User_id = ? AND Comment_DB_text = ?'''
+        idx = self.exec_cmd(search_cmnt_cmd, (usr_idx, cmnt)).fetchone()
+        return idx[0] if idx is not None else None
+
+    def __create_comment(self, user_name, cmnt, usr_idx_override=None):
+        """
+        Makes a comment and returns the comment ID.
+        :param user_name: Name of the user.
+        :param cmnt: Comment text.
+        :param usr_idx_override: Override from higher call to skip user search.
+        """
+        user_idx = self.__get_user_idx(user_name) if usr_idx_override is None else usr_idx_override
+        if user_idx is None:
+            print(f'handler.__create_comment(): No user name {user_name}, comment interrupted.')
+            return
+        cmnt_cmd = '''INSERT INTO Comment_DB (Comment_DB_text, Comment_DB_User_id, Comment_DB_post_time) VALUES (?, ?, ?)'''
+        self.exec_cmd(cmnt_cmd, (cmnt, user_idx, datetime.now()))
+        return self.__get_cmnt_idx(user_name, cmnt, usr_idx_override=user_idx)
+
+    # ~~~~~~~~~~~~~~~~~~Insert into Ratings table functions~~~~~~~~~~~~~~~~~~
+    def give_rating(self, user_name, anime_name, rating, usr_idx_override=None, ani_idx_override=None):
+        usr_idx = self.__get_user_idx(user_name) if usr_idx_override is None else usr_idx_override
+        ani_idx = self.__get_anime_idx(anime_name) if ani_idx_override is None else ani_idx_override
+
+        if usr_idx is None:
+            print(f'handler.give_rating(): Need to make an account to rate the anime.')
+            return
+        if ani_idx is None:
+            print(f'handler.give_rating(): Anime not in DB, we will update our database.')
+            # Can put a log here to let admins know.
+            return
+
+        rate_cmd = '''INSERT INTO Ratings (Ratings_User_id, Ratings_Anime_id, Ratings_rating) VALUES (?, ?, ?)'''
+        self.exec_cmd(rate_cmd, (usr_idx, ani_idx, rating))
+
+    def get_anime_rating(self, anime_name):
+        ani_idx = self.__get_anime_idx(anime_name)
+        if ani_idx is None:
+            print("Anime not in our database, we will update our database, sorry for inconvenience.")
+            return
+        ratings_cmd = '''SELECT Ratings_rating FROM Ratings WHERE Ratings_Anime_id = ?'''
+        ratings = [row[0] for row in self.exec_cmd(ratings_cmd, (ani_idx,)).fetchall()]
+        # Return the average ratings.
+        return mean(ratings)
+
+    # ~~~~~~~~~~~~~~~~~~Insert into User table functions~~~~~~~~~~~~~~~~~~
+    def create_user(self, urs_tag, mail_id, pswd, user_icon=None):
+        if not self.__validate_email(mail_id):
+            print("Invalid email address, please try again.")
+            return
+        # Hash password using Argon2, if need to login.
+        password_hash = self.m_pswd_hasher.hash(pswd)
+
+        if user_icon is None:
+            make_user_cmd = '''INSERT INTO User (User_tag, User_email, User_pwdhash) VALUES (?, ?, ?)'''
+            make_inp = (urs_tag, mail_id, password_hash)
+        else:
+            make_user_cmd = '''INSERT INTO User (User_tag, User_email, User_pwdhash, User_icon) VALUES (?, ?, ?, ?)'''
+            make_inp = (urs_tag, mail_id, password_hash, user_icon)
+        # Insert into table.
+        self.exec_cmd(make_user_cmd, make_inp)
+
+    def _password_check(self, pswd, hashed_pswd):
+        """
+        Checks if the hashed password matches the pswd.
+        Can only be called by inherited class or function in this class.
+        :param pswd: Password to check.
+        :param hashed_pswd: Password hash taken from User table (to be valid).
+        :return: True if the hashed password matches the pswd, else False.
+        """
+        return self.m_pswd_hasher.verify(hashed_pswd, pswd)
+
+    @staticmethod
+    def __validate_email(email):
+        # Regular expression pattern for validating email addresses
+        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        # Compile the pattern
+        regex = re.compile(pattern)
+        # Use search method to check if the email matches the pattern
+        return regex.search(email)
+
+    def __get_user_idx(self, user_name):
+        user_idx_cmd = '''SELECT User_id FROM User WHERE User_tag = ?'''
+        idx = self.exec_cmd(user_idx_cmd, (user_name,)).fetchone()
+        return idx[0] if idx is not None else None
+
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def __get_anime_idx(self, anime_name):
         anime_idx_cmd = '''SELECT Anime_id FROM Anime WHERE Anime_en_name = ? OR Anime_jp_name = ?'''
-        query_inp = (anime_name, anime_name)
-        idx = self.exec_cmd(anime_idx_cmd, query_inp).fetchone()
+        idx = self.exec_cmd(anime_idx_cmd, (anime_name, anime_name)).fetchone()
         return idx[0] if idx is not None else None
 
-    def show_table(self, cursor_out, indices=None):
+    @ staticmethod
+    def show_table(cursor_out, indices=None):
         """
         Print the cursor output as a table.
         :param indices: list of column names to be used as indices.
