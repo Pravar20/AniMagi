@@ -6,7 +6,6 @@ db_handle = DB_Handler()
 # db_handle.sample_data_insert()
 print("AOT rating:", db_handle.get_anime_rating('Attack on Titan'))
 
-<<<<<<< HEAD
 # Add type hint.
 anime_aot: Anime
 anime_aot = {
@@ -78,11 +77,11 @@ db_handle.insert_anime(anime_naruto)
 db_handle.insert_anime(anime_fma)
 db_handle.insert_anime(anime_jjk)
 
-view_tbl_cmd = '''SELECT * FROM Anime'''
-cmd_out = db_handle.exec_cmd(view_tbl_cmd)
-db_handle.show_table(cmd_out, [cmd_out.description[0][0]])
-=======
+# view_tbl_cmd = '''SELECT * FROM Anime'''
+# cmd_out = db_handle.exec_cmd(view_tbl_cmd)
+# db_handle.show_table(cmd_out, [cmd_out.description[0][0]])
+
+
 # view_tbl_cmd = '''SELECT * FROM Casting'''
 # cmd_out = db_handle.exec_cmd(view_tbl_cmd)
 # db_handle.show_table(cmd_out, ['Casting_id', 'Casting_VA_DB_id'])
->>>>>>> c9e8cd1008c8157758a85b155570dae66c006b16
