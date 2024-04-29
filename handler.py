@@ -6,6 +6,9 @@ from typing import TypedDict
 from IPython.display import display
 from statistics import mean
 import re
+import argon2
+from argon2 import PasswordHasher
+
 
 def list_to_string(lst):
     return '(' + ', '.join(lst) + ')'
@@ -37,8 +40,7 @@ class Anime(TypedDict):
 class DB_Handler(sqlite3_connector.Animagi_DB):
     def __init__(self, DB_name=sqlite3_connector.DEFAULT_DB):
         super().__init__(DB_name)
-        self.__first_create_tables()
-        self.__sample_data_insert()
+        self.m_pswd_hasher = PasswordHasher()
 
     def __first_create_tables(self):
         tables = []
@@ -180,7 +182,29 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
             self.exec_cmd(self.get_create_tbl_cmd(tbl))
             self.commit()
 
-    def __sample_data_insert(self):
+    def sample_data_insert(self):
+        self.__first_create_tables()
+        # ____________________Anime prime____________________
+        # Add type hint.
+        anime_dict: Anime
+        anime_dict = {
+            'en_name': 'Attack on Titan', 'jp_name': 'Shingeki no Kyojin',
+            'aired': date(2013, 4, 7),
+            'episodes': 25, 'anime_icon': 'https://cdn.myanimelist.net/images/anime/10/47347.jpg',
+            'genres': ['Action', 'Award Winning', 'Drama', 'Suspense'], 'studios': ['Wit Studio'],
+            'roles': [
+                ('Kaji, Yuuki', 'Yeager, Eren'),
+                ('Ishikawa, Yui', 'Ackerman, Mikasa'),
+                ('Inoue, Marina', 'Arlert, Armin'),
+                ('Kamiya, Hiroshi', 'Levi'),
+                ('Ono, Daisuke', 'Smith, Erwin'),
+                ('Park, Romi', 'Zoë, Hange'),
+                ('Kobayashi, Yuu', 'Blouse, Sasha'),
+                ('Shimamura, Yuu', 'Leonhart, Annie'),
+            ]
+        }
+        self.insert_anime(anime_dict)
+
         # ____________________VA DB prime____________________
         va_db_inp = [
             ("Kaji, Yuuki", 'https://cdn.myanimelist.net/r/42x62/images/voiceactors/2/66416.jpg?s=91e56f66a0be72a89dff77e0d8ec55ce'),
@@ -193,6 +217,30 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         ]
         self.insert_va_db(va_db_inp)
 
+        # ____________________User prime____________________
+        # With icon.
+        self.create_user('Pravar20', 'pkochar1@umbc.edu', 'supersecret0000', 'https://cdn-icons-png.flaticon.com/512/270/270811.png')
+        # No icon.
+        self.create_user('KikiThe1st', 'nb29691@umbc.edu', 'supersecret0001')
+
+        # ____________________Rate prime____________________
+        self.give_rating('Pravar20', 'Attack on Titan', 10)
+        self.give_rating('KikiThe1st', 'Shingeki no Kyojin', 9)
+
+        # ____________________Comment prime____________________
+        pk_thread = self.make_thread('Attack on Titan', 'Pravar20', 'This is one of my favorite anime!')
+
+        # Can pass in index to not have to search for anime.
+        aot_key = self.__get_anime_idx('Attack on Titan')
+        fz_thread = self.make_thread('Attack on Titan', 'KikiThe1st',
+                                     'Love that this has 26 episodes!!!', ani_idx_override=aot_key)
+
+        self.reply_to_thread(pk_thread, 'KikiThe1st', 'I agree its in my top 10 list.')
+        self.reply_to_thread(pk_thread, 'Pravar20', '@KikiThe1st Yeah and the rating also shows it')
+
+        pass
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def insert_anime(self, anime_dict: Anime):
         """
         Insert an Anime into the database.
@@ -447,7 +495,7 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         ani_idx = self.__get_anime_idx(anime_name) if ani_idx_override is None else ani_idx_override
         usr_idx = self.__get_user_idx(user_name) if user_idx_override is None else user_idx_override
         cmnt_idx = self.__get_cmnt_idx(user_name, cmnt, usr_idx_override=usr_idx)
-        if None not in [ani_idx, usr_idx, cmnt_idx]:
+        if None in [ani_idx, usr_idx, cmnt_idx]:
             print(f'handler.search_thread(): Can\'t search for the requested thread.')
             return None
 
@@ -518,12 +566,31 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         return mean(ratings)
 
     # ~~~~~~~~~~~~~~~~~~Insert into User table functions~~~~~~~~~~~~~~~~~~
-    def create_user(self, urs_tag, mail_id, pswd):
+    def create_user(self, urs_tag, mail_id, pswd, user_icon=None):
         if not self.__validate_email(mail_id):
             print("Invalid email address, please try again.")
             return
-        password_hash = None
-        pass
+        # Hash password using Argon2, if need to login.
+        password_hash = self.m_pswd_hasher.hash(pswd)
+
+        if user_icon is None:
+            make_user_cmd = '''INSERT INTO User (User_tag, User_email, User_pwdhash) VALUES (?, ?, ?)'''
+            make_inp = (urs_tag, mail_id, password_hash)
+        else:
+            make_user_cmd = '''INSERT INTO User (User_tag, User_email, User_pwdhash, User_icon) VALUES (?, ?, ?, ?)'''
+            make_inp = (urs_tag, mail_id, password_hash, user_icon)
+        # Insert into table.
+        self.exec_cmd(make_user_cmd, make_inp)
+
+    def _password_check(self, pswd, hashed_pswd):
+        """
+        Checks if the hashed password matches the pswd.
+        Can only be called by inherited class or function in this class.
+        :param pswd: Password to check.
+        :param hashed_pswd: Password hash taken from User table (to be valid).
+        :return: True if the hashed password matches the pswd, else False.
+        """
+        return self.m_pswd_hasher.verify(hashed_pswd, pswd)
 
     @staticmethod
     def __validate_email(email):
