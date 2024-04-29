@@ -5,10 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="642412dd-c310-419f-b214-ed06556684c0" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/88eece22-6c99-4643-a4fe-afc7c29e382a.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/88eece22-6c99-4643-a4fe-afc7c29e382a.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/animagi.db" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/handler.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/run.py" beforeDir="false" afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -117,7 +114,7 @@
       <workItem from="1714252713764" duration="21531000" />
       <workItem from="1714275828255" duration="8442000" />
       <workItem from="1714285185444" duration="69000" />
-      <workItem from="1714336262624" duration="17248000" />
+      <workItem from="1714336262624" duration="17653000" />
     </task>
     <servers />
   </component>
@@ -134,7 +131,7 @@
     </watches-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/project_animagi$run.coverage" NAME="run Coverage Results" MODIFIED="1714353577100" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/project_animagi$run.coverage" NAME="run Coverage Results" MODIFIED="1714353870259" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/project_animagi$hashing_test.coverage" NAME="hashing_test Coverage Results" MODIFIED="1713426556021" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/project_animagi$sqlite3_connector.coverage" NAME="sqlite3_connector Coverage Results" MODIFIED="1713999085797" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/project_animagi$handler.coverage" NAME="handler Coverage Results" MODIFIED="1714001344549" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
