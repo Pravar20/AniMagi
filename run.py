@@ -23,6 +23,6 @@ anime_dict = {
 }
 db_handle.insert_anime(anime_dict)
 
-# view_tbl_cmd = '''SELECT * FROM VA_DB'''
+# view_tbl_cmd = '''SELECT * FROM Casting'''
 # cmd_out = db_handle.exec_cmd(view_tbl_cmd)
-# db_handle.show_table(cmd_out, [cmd_out.description[0][0]])
+# db_handle.show_table(cmd_out, ['Casting_id', 'Casting_VA_DB_id'])
