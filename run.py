@@ -4,7 +4,7 @@ from datetime import date
 
 db_handle = DB_Handler()
 # db_handle.sample_data_insert()
-print("AOT rating:", db_handle.get_anime_rating('Attack on Titan'))
+print("AOT rating:", db_handle.get_anime_rating('Attack on Titan: Final Season'))
 
 # view_tbl_cmd = '''SELECT * FROM Casting'''
 # cmd_out = db_handle.exec_cmd(view_tbl_cmd)
