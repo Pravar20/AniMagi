@@ -304,7 +304,7 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         pk_thread = self.make_thread('Attack on Titan', 'Pravar20', 'This is one of my favorite anime!')
 
         # Can pass in index to not have to search for anime.
-        aot_key = self.__get_anime_idx('Attack on Titan')
+        aot_key = self.get_anime_idx('Attack on Titan')
         fz_thread = self.make_thread('Attack on Titan', 'KikiThe1st',
                                      'Love that this has 26 episodes!!!', ani_idx_override=aot_key)
 
@@ -330,7 +330,7 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
             valid_name = anime_dict['en_name']
         else:
             valid_name = anime_dict['jp_name']
-        ani_idx = self.__get_anime_idx(valid_name)
+        ani_idx = self.get_anime_idx(valid_name)
 
         # Add the genres.
         self.insert_genre(valid_name, anime_dict['genres'], ani_idx_override=ani_idx)
@@ -386,7 +386,7 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         """
         # print("GENRE LOG: ", genre_names)
         # Get the indices for anime and genre.
-        anime_idx = self.__get_anime_idx(anime_name) if ani_idx_override is None else ani_idx_override
+        anime_idx = self.get_anime_idx(anime_name) if ani_idx_override is None else ani_idx_override
         genre_idxs = self.__get_genre_db_idxs(genre_names)
         # If anime is not in table can't add genre to it.
         if anime_idx is None:
@@ -425,7 +425,7 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         :param ani_idx_override: Override from higher call to skip anime search.
         """
         # Get the indices for anime.
-        anime_idx = self.__get_anime_idx(anime_name) if ani_idx_override is None else ani_idx_override
+        anime_idx = self.get_anime_idx(anime_name) if ani_idx_override is None else ani_idx_override
         studio_idxs = self.__get_studios_idxs(studio_names)
         if anime_idx is None:
             print(f'handler.insert_studios(): No anime with name {anime_name} found, insert interrupted.')
@@ -468,7 +468,7 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         :param ani_idx_override: Override from higher call to skip anime search.
         """
         # Get the indices for anime and genre.
-        anime_idx = self.__get_anime_idx(anime_name) if ani_idx_override is None else ani_idx_override
+        anime_idx = self.get_anime_idx(anime_name) if ani_idx_override is None else ani_idx_override
         # If anime is not in table can't add genre to it.
         if anime_idx is None:
             print(f'handler.insert_casting(): No anime with name {anime_name} found, insert interrupted.')
@@ -541,7 +541,7 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         :param ani_idx_override: Override from higher call to skip anime search.
         :return: Thread id (Shouldn't be None).
         """
-        ani_idx = self.__get_anime_idx(anime_name) if ani_idx_override is None else ani_idx_override
+        ani_idx = self.get_anime_idx(anime_name) if ani_idx_override is None else ani_idx_override
         usr_idx = self.__get_user_idx(user_name) if user_idx_override is None else user_idx_override
 
         # Check both the anime and user exists.
@@ -563,7 +563,7 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
 
     def get_thread_idx(self, anime_name, user_name, cmnt, ani_idx_override=None,
                        user_idx_override=None):
-        ani_idx = self.__get_anime_idx(anime_name) if ani_idx_override is None else ani_idx_override
+        ani_idx = self.get_anime_idx(anime_name) if ani_idx_override is None else ani_idx_override
         usr_idx = self.__get_user_idx(user_name) if user_idx_override is None else user_idx_override
         cmnt_idx = self.__get_cmnt_idx(user_name, cmnt, usr_idx_override=usr_idx)
         if None in [ani_idx, usr_idx, cmnt_idx]:
@@ -613,7 +613,7 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
     # ~~~~~~~~~~~~~~~~~~Insert into Ratings table functions~~~~~~~~~~~~~~~~~~
     def give_rating(self, user_name, anime_name, rating, usr_idx_override=None, ani_idx_override=None):
         usr_idx = self.__get_user_idx(user_name) if usr_idx_override is None else usr_idx_override
-        ani_idx = self.__get_anime_idx(anime_name) if ani_idx_override is None else ani_idx_override
+        ani_idx = self.get_anime_idx(anime_name) if ani_idx_override is None else ani_idx_override
 
         if usr_idx is None:
             print(f'handler.give_rating(): Need to make an account to rate the anime.')
@@ -627,7 +627,7 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         self.exec_cmd(rate_cmd, (usr_idx, ani_idx, rating))
 
     def get_anime_rating(self, anime_name):
-        ani_idx = self.__get_anime_idx(anime_name)
+        ani_idx = self.get_anime_idx(anime_name)
         if ani_idx is None:
             print("Anime not in our database, we will update our database, sorry for inconvenience.")
             return
@@ -678,7 +678,7 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         return idx[0] if idx is not None else None
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    def __get_anime_idx(self, anime_name):
+    def get_anime_idx(self, anime_name):
         anime_idx_cmd = '''SELECT Anime_id FROM Anime WHERE Anime_en_name = ? OR Anime_jp_name = ?'''
         idx = self.exec_cmd(anime_idx_cmd, (anime_name, anime_name)).fetchone()
         return idx[0] if idx is not None else None

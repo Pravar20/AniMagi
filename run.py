@@ -2,86 +2,83 @@ from handler import DB_Handler, Anime
 from datetime import date
 
 
-db_handle = DB_Handler()
-# db_handle.sample_data_insert()
-print("AOT rating:", db_handle.get_anime_rating('Attack on Titan: Final Season'))
-
-# Add type hint.
-anime_aot: Anime
-anime_aot = {
-    'en_name': 'Attack on Titan', 'jp_name': 'Shingeki no Kyojin',
-    'aired': date(2013, 4, 7),
-    'episodes': 25, 'anime_icon': 'https://cdn.myanimelist.net/images/anime/10/47347.jpg',
-    'genres': ['Action', 'Award Winning', 'Drama', 'Suspense'], 'studios': ['Wit Studio'],
-    'roles': [
-        ('Kaji, Yuuki', 'Yeager, Eren'),
-        ('Ishikawa, Yui', 'Ackerman, Mikasa'),
-        ('Inoue, Marina', 'Arlert, Armin'),
-        ('Kamiya, Hiroshi', 'Levi'),
-        ('Ono, Daisuke', 'Smith, Erwin'),
-        ('Park, Romi', 'Zoë, Hange'),
-        ('Kobayashi, Yuu', 'Blouse, Sasha'),
-        ('Shimamura, Yuu', 'Leonhart, Annie'),
-    ]
-}
-anime_naruto: Anime
-anime_naruto = {
-    'en_name': 'Naruto', 'jp_name': 'Naruto',
-    'aired': date(2002, 10, 3),
-    'episodes': 220, 'anime_icon': 'https://cdn.myanimelist.net/images/anime/13/17405.jpg',
-    'genres': ['Action', 'Adventure', 'Comedy', 'Super Power'],
-    'studios': ['Studio Pierrot'],
-    'roles': [
-        ('Takeuchi, Junko', 'Uzumaki, Naruto'),
-        ('Inoue, Kazuhiko', 'Hatake, Kakashi'),
-        ('Nakamura, Chie', 'Haruno, Sakura'),
-        ('Sugiyama, Noriaki', 'Uchiha, Sasuke'),
-    ]
-}
-anime_fma: Anime
-anime_fma = {
-    'en_name': 'Fullmetal Alchemist: Brotherhood', 'jp_name': 'Hagane no Renkinjutsushi: Fullmetal Alchemist',
-    'aired': date(2009, 4, 5),
-    'episodes': 64, 'anime_icon': 'https://cdn.myanimelist.net/images/anime/1223/96541.jpg',
-    'genres': ['Action', 'Military', 'Adventure', 'Drama', 'Magic', 'Fantasy'],
-    'studios': ['Bones'],
-    'roles': [
-        ('Paku, Romi', 'Elric, Edward'),
-        ('Kugimiya, Rie', 'Elric, Alphonse'),
-        ('Miki, Shinichiro', 'Mustang, Roy'),
-        ('Han, Keiko', 'Hawkeye, Riza'),
-    ]
-}
-
-anime_jjk: Anime
-anime_jjk = {
-    'en_name': 'Jujutsu Kaisen', 'jp_name': 'Jujutsu Kaisen',
-    'aired': date(2020, 10, 3),
-    'episodes': 24, 'anime_icon': 'https://cdn.myanimelist.net/images/anime/6/109302.jpg',
-    'genres': ['Action', 'Horror', 'Supernatural', 'Mystery', 'School', 'Shounen'],
-    'studios': ['MAPPA'],
-    'roles': [
-        ('Enoki, Junya', 'Itadori, Yuuji'),
-        ('Uchida, Yuuma', 'Fushiguro, Megumi'),
-        ('Seto, Asami', 'Kugisaki, Nobara'),
-        ('Nakamura, Yuichi', 'Gojou, Satoru'),
-        ('Hanae, Natsuki', 'Zenin, Maki'),
-        ('Kaji, Yuuki', 'Inumaki, Toge'),
-        ('Okitsu, Kazuyuki', 'Nanami, Kento'),
-        ('Ishida, Akira', 'Getou, Suguru'),
-    ]
-}
-
-db_handle.insert_anime(anime_aot)
-db_handle.insert_anime(anime_naruto)
-db_handle.insert_anime(anime_fma)
-db_handle.insert_anime(anime_jjk)
-
-# view_tbl_cmd = '''SELECT * FROM Anime'''
-# cmd_out = db_handle.exec_cmd(view_tbl_cmd)
-# db_handle.show_table(cmd_out, [cmd_out.description[0][0]])
+DB_name = 'animagi.db'
+request_string = 'Enter your choice: '
 
 
-# view_tbl_cmd = '''SELECT * FROM Casting'''
-# cmd_out = db_handle.exec_cmd(view_tbl_cmd)
-# db_handle.show_table(cmd_out, ['Casting_id', 'Casting_VA_DB_id'])
+def print_options():
+    f = f"""
+    You are connected to '{DB_name}'.
+    ************************************************************************************************
+    You can perform any of the following actions by typing the command number or 'quit'.
+        1. Search for an anime and display it on screen.
+        2. View an anime's comment section.
+        3. Search for anime's of a certain genre.
+        4. Search for the anime's done a Voice Actor.
+        5. Search for anime's that was produced by a certain studio.
+        6. Display top 10 anime rankings.
+    ************************************************************************************************
+    """
+    print(f)
+
+
+def display_anime(DB):
+    print(
+        """
+        Choice: 1. Search for an anime and display it on screen.
+        Please insert anime to find:
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        """
+    )
+    anime_name = input(request_string)
+    anime_idx = DB.get_anime_idx(anime_name)
+    anime_cmd = '''
+    SELECT
+        Anime_en_name, Anime_jp_name, Anime_icon, Anime_aired, Anime_episodes 
+    FROM Anime WHERE Anime_id = ?'''
+
+    anime_genre_cmd = ''' 
+    SELECT G.Genre_DB_name FROM 
+    (
+        SELECT Genre_DB.Genre_DB_name
+        FROM
+            Genre
+            INNER JOIN Genre_DB
+            WHERE Genre_Anime_id = ?
+    ) G'''
+
+    anime_out = DB.exec_cmd(anime_cmd, (anime_idx,))
+    genre_out = DB.exec_cmd(anime_genre_cmd, (anime_idx,))
+    DB.show_table(anime_out)
+    DB.show_table(genre_out)
+
+
+if __name__ == '__main__':
+    db_handle = DB_Handler(DB_name=DB_name)
+    user_exit = False
+    while user_exit is False:
+        print_options()
+        u_input = input(request_string)
+        if u_input in ['1', '2', '3', '4', '5', '6']:
+            # Run respective functions
+            match int(u_input):
+                case 1:
+                    display_anime(db_handle)
+                    break
+                case 2:
+                    break
+                case 3:
+                    break
+                case 4:
+                    break
+                case 5:
+                    break
+                case 6:
+                    break
+                case _:
+                    break
+
+        elif u_input in ['quit', 'q']:
+            user_exit = True
+        else:
+            print('Invalid input, please only insert valid inserts')
