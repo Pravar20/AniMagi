@@ -1,5 +1,6 @@
 from handler import DB_Handler, Anime
 from datetime import date
+from copy import deepcopy
 
 
 DB_name = 'animagi.db'
@@ -32,24 +33,18 @@ def display_anime(DB):
     )
     anime_name = input(request_string)
     anime_idx = DB.get_anime_idx(anime_name)
-    anime_cmd = '''
-    SELECT
-        Anime_en_name, Anime_jp_name, Anime_icon, Anime_aired, Anime_episodes 
-    FROM Anime WHERE Anime_id = ?'''
 
-    anime_genre_cmd = ''' 
-    SELECT G.Genre_DB_name FROM 
-    (
-        SELECT Genre_DB.Genre_DB_name
-        FROM
-            Genre
-            INNER JOIN Genre_DB
-            WHERE Genre_Anime_id = ?
-    ) G'''
+    anime_cmd = '''SELECT Anime_en_name, Anime_jp_name, Anime_icon, Anime_aired, Anime_episodes FROM Anime WHERE Anime_id = ?'''
 
+    anime_genre_cmd = '''SELECT Genre_DB.Genre_DB_name FROM 
+            Genre INNER JOIN Genre_DB ON Genre.Genre_Genre_DB_id = Genre_DB.Genre_DB_id
+            WHERE Genre.Genre_Anime_id = ?'''
+
+    print("Anime table")
     anime_out = DB.exec_cmd(anime_cmd, (anime_idx,))
-    genre_out = DB.exec_cmd(anime_genre_cmd, (anime_idx,))
     DB.show_table(anime_out)
+    print("Genres")
+    genre_out = DB.exec_cmd(anime_genre_cmd, (anime_idx,))
     DB.show_table(genre_out)
 
 
@@ -64,20 +59,16 @@ if __name__ == '__main__':
             match int(u_input):
                 case 1:
                     display_anime(db_handle)
-                    break
                 case 2:
-                    break
+                    pass
                 case 3:
-                    break
+                    pass
                 case 4:
-                    break
+                    pass
                 case 5:
-                    break
+                    pass
                 case 6:
-                    break
-                case _:
-                    break
-
+                    pass
         elif u_input in ['quit', 'q']:
             user_exit = True
         else:
