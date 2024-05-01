@@ -120,6 +120,25 @@ def view_comment_section(DB):
         print('________________________________')
 
 
+def search_anime_by_studio(DB):
+    print(
+        """
+        Choice: 5. Search for anime's that was produced by a certain studio.
+        Please insert studio name:
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        """
+    )
+    studio_name = input(request_string)
+
+    ani_studio_cmd = '''SELECT Anime_en_name, Anime_jp_name FROM Anime
+                        INNER JOIN Studio ON Anime_id = Studio.Studio_Anime_id
+                        INNER JOIN Studio_DB ON Studio_Studio_DB_id = Studio_DB_id
+                        WHERE Studio_DB_name = ?'''
+    ani_studio_out = DB.exec_cmd(ani_studio_cmd, (studio_name,))
+    ani_studio_out = DB.get_table(ani_studio_out)
+    display(ani_studio_out)
+
+
 def demo():
     db_handle = DB_Handler(DB_name=DB_name)
     user_exit = False
@@ -133,13 +152,12 @@ def demo():
                     display_anime(db_handle)
                 case 2:
                     view_comment_section(db_handle)
-                    pass
                 case 3:
                     pass
                 case 4:
                     pass
                 case 5:
-                    pass
+                    search_anime_by_studio(db_handle)
                 case 6:
                     pass
         elif u_input in ['quit', 'q']:
@@ -148,4 +166,4 @@ def demo():
             print('Invalid input, please only insert valid inserts')
 
 
-# demo()
+demo()
