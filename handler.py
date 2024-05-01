@@ -3,10 +3,8 @@ import sqlite3  # For raising errors
 from datetime import date, datetime
 import pandas as pd
 from typing import TypedDict
-from IPython.display import display
 from statistics import mean
 import re
-import argon2
 from argon2 import PasswordHasher
 
 
@@ -684,21 +682,20 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         return idx[0] if idx is not None else None
 
     @ staticmethod
-    def show_table(cursor_out, indices=None):
+    def get_table(cursor_out, indices=None):
         """
         Print the cursor output as a table.
-        :param indices: list of column names to be used as indices.
         :param cursor_out: Cursor object.
+        :param indices: list of column names to be used as indices.
+        :return: DataFrame table.
         """
         # Make the table as a DataFrame object.
-        pd.set_option('display.max_colwidth', 320)
         tbl = pd.DataFrame([list(row) for row in cursor_out.fetchall()],
                            columns=[col[0] for col in cursor_out.description])
         # If indices are given add it to table.
         if indices is not None:
             tbl.set_index(indices, inplace=True)
-        # Print the table.
-        display(tbl)
+        return tbl
 
     def __del__(self):
         super().__del__()
