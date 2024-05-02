@@ -139,6 +139,27 @@ def search_anime_by_studio(DB):
     display(ani_studio_out)
 
 
+def search_anime_by_VA(DB):
+    print(
+        """
+        Choice: 4. Search for anime's that was acted by a certain voice actor.
+        Please insert voice actor's name:
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        """
+    )
+    va_name = input(request_string)
+
+    ani_va_cmd = '''SELECT Anime_en_name, Anime_jp_name FROM Anime
+    INNER JOIN Cast ON Anime_id = Cast_Anime_id
+    INNER JOIN Casting ON Cast_Casting_id = Casting_id
+    INNER JOIN VA_DB ON Casting_VA_DB_id = VA_DB_id
+    WHERE VA_DB_name = ?
+    '''
+    ani_va_out = DB.exec_cmd(ani_va_cmd, (va_name,))
+    ani_va_out = DB.get_table(ani_va_out)
+    display(ani_va_out)
+
+
 def demo():
     db_handle = DB_Handler(DB_name=DB_name)
     user_exit = False
@@ -155,7 +176,7 @@ def demo():
                 case 3:
                     pass
                 case 4:
-                    pass
+                    search_anime_by_VA(db_handle)
                 case 5:
                     search_anime_by_studio(db_handle)
                 case 6:
