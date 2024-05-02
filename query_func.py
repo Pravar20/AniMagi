@@ -128,7 +128,7 @@ def find_VA_id(VA_name):
 
 # 4. Search for the anime's done a Voice Actor.
 def find_anime_by_voice_actor(actor_id):
-    query = f"SELECT ANIME.* FROM ANIME INNER JOIN CAST ON ANIME.cast_id = CAST.cast_id WHERE CAST.actor_id = ?"
+    return f"SELECT ANIME.* FROM ANIME INNER JOIN CAST ON ANIME.cast_id = CAST.cast_id WHERE CAST.actor_id = ?"
     # c.execute(query, (actor_id,))
 
 def find_studio_id(studio_name):
