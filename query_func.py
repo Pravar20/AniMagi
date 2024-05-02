@@ -122,3 +122,20 @@ def show_table(cursor, query):
 def clear_table(table_name):
     table = table_name.upper()
     return f"DELETE FROM {table_name}"
+
+def find_VA_id(VA_name):
+    return "SELECT id FROM VA_DB WHERE name = ?"
+
+# 4. Search for the anime's done a Voice Actor.
+def find_anime_by_voice_actor(actor_id):
+    query = f"SELECT ANIME.* FROM ANIME INNER JOIN CAST ON ANIME.cast_id = CAST.cast_id WHERE CAST.actor_id = ?"
+    # c.execute(query, (actor_id,))
+
+def find_studio_id(studio_name):
+    return "SELECT id FROM Studio_DB WHERE name = ?"
+
+# 5. Search for anime's that was produced by a certain studio.
+def find_anime_by_studio(studio_id):
+    return f"SELECT * FROM ANIME WHERE studio_id = ?"
+    # c.execute(query, (studio_id,))
+
