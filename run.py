@@ -3,10 +3,8 @@ from datetime import date
 from IPython.display import display
 import pandas as pd
 
-
 DB_name = 'animagi.db'
 request_string = 'Enter your choice: '
-
 
 def print_options():
     f = f"""
@@ -159,6 +157,22 @@ def search_anime_by_VA(DB):
     ani_va_out = DB.get_table(ani_va_out)
     display(ani_va_out)
 
+def get_top_ten(DB):
+    print(
+        """
+        Choice: 6. Top Ten Anime with Best Rating:
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        """
+    )
+    ani_top_cmd = '''SELECT Anime.Anime_en_name, Anime.Anime_jp_name, AVG(Ratings.Ratings_rating) AS avg_rating
+                FROM Anime
+                INNER JOIN Ratings ON Anime.Anime_id = Ratings.Ratings_Anime_id
+                GROUP BY Anime.Anime_en_name, Anime.Anime_jp_name
+                ORDER BY avg_rating DESC
+                LIMIT 10'''
+    ani_top_out = DB.exec_cmd(ani_top_cmd)
+    ani_top_out = DB.get_table(ani_top_out)
+    display(ani_top_out)
 
 def demo():
     db_handle = DB_Handler(DB_name=DB_name)
@@ -180,7 +194,7 @@ def demo():
                 case 5:
                     search_anime_by_studio(db_handle)
                 case 6:
-                    pass
+                    get_top_ten(db_handle)
         elif u_input in ['quit', 'q']:
             user_exit = True
         else:
