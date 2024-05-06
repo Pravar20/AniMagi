@@ -6,6 +6,7 @@ import pandas as pd
 DB_name = 'animagi.db'
 request_string = 'Enter your choice: '
 
+
 def print_options():
     f = f"""
     You are connected to '{DB_name}'.
@@ -157,6 +158,7 @@ def search_anime_by_VA(DB):
     ani_va_out = DB.get_table(ani_va_out)
     display(ani_va_out)
 
+
 def get_top_ten(DB):
     print(
         """
@@ -172,7 +174,11 @@ def get_top_ten(DB):
                 LIMIT 10'''
     ani_top_out = DB.exec_cmd(ani_top_cmd)
     ani_top_out = DB.get_table(ani_top_out)
+    ani_top_out.insert(0, "Rank", range(1, 10)[:ani_top_out.shape[0]], True)
+    ani_top_out.set_index('Rank', inplace=True)
+    pd.set_option('display.width', 1000)
     display(ani_top_out)
+
 
 def demo():
     db_handle = DB_Handler(DB_name=DB_name)
