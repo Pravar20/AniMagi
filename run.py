@@ -164,7 +164,7 @@ def get_top_ten(DB):
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         """
     )
-    ani_top_cmd = '''SELECT Anime.Anime_en_name, Anime.Anime_jp_name, AVG(Ratings.Ratings_rating) AS avg_rating
+    ani_top_cmd = '''SELECT Anime.Anime_en_name, Anime.Anime_jp_name, AVG(Ratings.Ratings_rating) AS Avg_Rating
                 FROM Anime
                 INNER JOIN Ratings ON Anime.Anime_id = Ratings.Ratings_Anime_id
                 GROUP BY Anime.Anime_en_name, Anime.Anime_jp_name
