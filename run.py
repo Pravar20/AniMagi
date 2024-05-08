@@ -17,7 +17,7 @@ def print_options():
         3. Search for anime's of a certain genre.
         4. Search for the anime's done a Voice Actor.
         5. Search for anime's that was produced by a certain studio.
-        6. Display top 10 anime rankings.
+        6. Display top five anime rankings.
     ************************************************************************************************
     """
     print(f)
@@ -159,10 +159,10 @@ def search_anime_by_VA(DB):
     display(ani_va_out)
 
 
-def get_top_ten(DB):
+def get_top_five(DB):
     print(
         """
-        Choice: 6. Top Ten Anime with Best Rating:
+        Choice: 6. Top Five Anime with Best Rating:
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         """
     )
@@ -171,7 +171,7 @@ def get_top_ten(DB):
                 INNER JOIN Ratings ON Anime.Anime_id = Ratings.Ratings_Anime_id
                 GROUP BY Anime.Anime_en_name, Anime.Anime_jp_name
                 ORDER BY avg_rating DESC
-                LIMIT 10'''
+                LIMIT 5'''
     ani_top_out = DB.exec_cmd(ani_top_cmd)
     ani_top_out = DB.get_table(ani_top_out)
     ani_top_out.insert(0, "Rank", range(1, 10)[:ani_top_out.shape[0]], True)
@@ -200,7 +200,7 @@ def demo():
                 case 5:
                     search_anime_by_studio(db_handle)
                 case 6:
-                    get_top_ten(db_handle)
+                    get_top_five(db_handle)
         elif u_input in ['quit', 'q']:
             user_exit = True
         else:

@@ -189,6 +189,8 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         anime_fma: Anime
         anime_jjk: Anime
         anime_aotfinal: Anime
+        anime_one_piece: Anime
+        anime_death_note: Anime
 
         anime_aot = {
             'en_name': 'Attack on Titan', 'jp_name': 'Shingeki no Kyojin',
@@ -266,12 +268,27 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
                 ('Hosoya, Yoshimasa', 'Braun, Reiner'),
             ]
         }
+        # New
+        anime_death_note = {
+            'en_name': 'Death Note', 'jp_name': 'デスノート',
+            'aired': date(2006, 10, 4),
+            'episodes': 37, 'anime_icon': 'https://cdn.myanimelist.net/images/anime/9/9453.jpg',
+            'genres': ['Mystery', 'Psychological', 'Supernatural', 'Thriller'],
+            'studios': ['Madhouse'],
+            'roles': [
+                ('Miyano, Mamoru', 'Yagami, Light'),
+                ('Nakamura, Shidou', 'L'),
+                ('Hirano, Aya', 'Misa Amane'),
+            ]
+        }
+
 
         self.insert_anime(anime_aot)
         self.insert_anime(anime_naruto)
         self.insert_anime(anime_fma)
         self.insert_anime(anime_jjk)
         self.insert_anime(anime_aotfinal)
+        self.insert_anime(anime_death_note)
         # ____________________VA DB prime____________________
         va_db_inp = [
             ("Kaji, Yuuki", 'https://cdn.myanimelist.net/r/42x62/images/voiceactors/2/66416.jpg?s=91e56f66a0be72a89dff77e0d8ec55ce'),
@@ -297,7 +314,7 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         self.give_rating('KikiThe1st', 'Naruto', 10)
         self.give_rating('Pravar20', 'Attack on Titan: Final Season', 8)
         self.give_rating('KikiThe1st', 'Shingeki no Kyojin: The Final Season', 6)
-
+        self.give_rating('KikiThe1st', 'Death Note', 8.5)
         # ____________________Comment prime____________________
         pk_thread = self.make_thread('Attack on Titan', 'Pravar20', 'This is one of my favorite anime!')
 
