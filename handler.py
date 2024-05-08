@@ -282,6 +282,48 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
             ]
         }
 
+        anime_my_hero_academia = {
+            'en_name': 'My Hero Academia', 'jp_name': '僕のヒーローアカデミア',
+            'aired': date(2016, 4, 3),
+            'episodes': 113, 'anime_icon': 'https://cdn.myanimelist.net/images/anime/5/75810.jpg',
+            'genres': ['Action', 'Comedy', 'Super Power', 'School', 'Shounen'],
+            'studios': ['Bones'],
+            'roles': [
+                ('Yamashita, Daiki', 'Izuku Midoriya'),
+                ('Okamoto, Nobuhiko', 'Katsuki Bakugo'),
+                ('Kaji, Yuuki', 'Shoto Todoroki'),
+                ('Sakurai, Takahiro', 'Shota Aizawa'),
+            ]
+        }
+
+        anime_demon_slayer = {
+            'en_name': 'Demon Slayer: Kimetsu no Yaiba', 'jp_name': '鬼滅の刃',
+            'aired': date(2019, 4, 6),
+            'episodes': 26, 'anime_icon': 'https://cdn.myanimelist.net/images/anime/1286/99889.jpg',
+            'genres': ['Action', 'Demons', 'Historical', 'Shounen', 'Supernatural'],
+            'studios': ['ufotable'],
+            'roles': [
+                ('Hanae, Natsuki', 'Kamado, Tanjiro'),
+                ('Kitou, Akari', 'Kamado, Nezuko'),
+                ('Shimono, Hiro', 'Agatsuma, Zenitsu'),
+                ('Matsuoka, Yoshitsugu', 'Hashibira, Inosuke'),
+            ]
+        }
+
+        anime_dragon_ball_z = {
+            'en_name': 'Dragon Ball Z', 'jp_name': 'ドラゴンボールZ',
+            'aired': date(1989, 4, 26),
+            'episodes': 291, 'anime_icon': 'https://cdn.myanimelist.net/images/anime/10/78260.jpg',
+            'genres': ['Action', 'Adventure', 'Comedy', 'Super Power', 'Martial Arts', 'Fantasy',
+                       'Shounen'],
+            'studios': ['Toei Animation'],
+            'roles': [
+                ('Nozawa, Masako', 'Son Goku'),
+                ('Tanaka, Mayumi', 'Vegeta'),
+                ('Horikawa, Ryo', 'Vegeta'),
+                ('Takahata, Hiroshi', 'Cell'),
+            ]
+        }
 
         self.insert_anime(anime_aot)
         self.insert_anime(anime_naruto)
@@ -289,6 +331,9 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         self.insert_anime(anime_jjk)
         self.insert_anime(anime_aotfinal)
         self.insert_anime(anime_death_note)
+        self.insert_anime(anime_my_hero_academia)
+        self.insert_anime(anime_demon_slayer)
+        self.insert_anime(anime_dragon_ball_z)
         # ____________________VA DB prime____________________
         va_db_inp = [
             ("Kaji, Yuuki", 'https://cdn.myanimelist.net/r/42x62/images/voiceactors/2/66416.jpg?s=91e56f66a0be72a89dff77e0d8ec55ce'),
@@ -315,6 +360,11 @@ class DB_Handler(sqlite3_connector.Animagi_DB):
         self.give_rating('Pravar20', 'Attack on Titan: Final Season', 8)
         self.give_rating('KikiThe1st', 'Shingeki no Kyojin: The Final Season', 6)
         self.give_rating('KikiThe1st', 'Death Note', 8.5)
+        self.give_rating('Pravar20', 'Death Note', 8)
+        self.give_rating('Pravar20', 'My Hero Academia', 8.5)
+        self.give_rating('Pravar20', 'Demon Slayer: Kimetsu no Yaiba', 6)
+        self.give_rating('KikiThe1st', 'Dragon Ball Z', 7.5)
+
         # ____________________Comment prime____________________
         pk_thread = self.make_thread('Attack on Titan', 'Pravar20', 'This is one of my favorite anime!')
 

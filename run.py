@@ -157,7 +157,8 @@ def search_anime_by_VA(DB):
     ani_va_out = DB.exec_cmd(ani_va_cmd, (va_name,))
     ani_va_out = DB.get_table(ani_va_out)
     display(ani_va_out)
-# 3
+
+
 def get_anime_by_genre(DB):
     print(
         """
@@ -179,6 +180,7 @@ def get_anime_by_genre(DB):
     ani_genre_out = DB.get_table(ani_genre_out)
     display(ani_genre_out)
 
+
 def get_top_five(DB):
     print(
         """
@@ -194,7 +196,7 @@ def get_top_five(DB):
                 LIMIT 5'''
     ani_top_out = DB.exec_cmd(ani_top_cmd)
     ani_top_out = DB.get_table(ani_top_out)
-    ani_top_out.insert(0, "Rank", range(1, 10)[:ani_top_out.shape[0]], True)
+    ani_top_out.insert(0, "Rank", range(1, 6)[:ani_top_out.shape[0]], True)
     ani_top_out.set_index('Rank', inplace=True)
     pd.set_option('display.width', 1000)
     display(ani_top_out)
