@@ -157,7 +157,27 @@ def search_anime_by_VA(DB):
     ani_va_out = DB.exec_cmd(ani_va_cmd, (va_name,))
     ani_va_out = DB.get_table(ani_va_out)
     display(ani_va_out)
+# 3
+def get_anime_by_genre(DB):
+    print(
+        """
+        Choice: 3. Search for anime's of a certain genre.
+        Please insert genre:
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        """
+    )
+    genre = input(request_string)
 
+    ani_genre_cmd = """
+    SELECT Anime_en_name, Anime_jp_name FROM Anime
+    INNER JOIN Genre ON Anime_id = Genre_Anime_id
+    INNER JOIN Genre_DB ON Genre_Genre_DB_id = Genre_DB_id
+    WHERE Genre_DB_name = ?
+    """
+
+    ani_genre_out = DB.exec_cmd(ani_genre_cmd, (genre,))
+    ani_genre_out = DB.get_table(ani_genre_out)
+    display(ani_genre_out)
 
 def get_top_five(DB):
     print(
@@ -194,7 +214,7 @@ def demo():
                 case 2:
                     view_comment_section(db_handle)
                 case 3:
-                    pass
+                    get_anime_by_genre(db_handle)
                 case 4:
                     search_anime_by_VA(db_handle)
                 case 5:
